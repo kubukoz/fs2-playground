@@ -1,7 +1,6 @@
 package io.typelevel
 import cats.effect._
 import cats.implicits._
-import fs2.Stream
 import fs2.concurrent.InspectableQueue
 
 import scala.language.higherKinds
@@ -18,13 +17,7 @@ object Playground extends IOApp {
       q <- InspectableQueue.bounded[IO, Unit](sizeLimit)
 
       job = (jobId: Int) =>
-        Stream
-          .emit(42)
-          .covary[IO]
-          .evalMap(_ => q.enqueue1(()) *> putStrLn[IO](show"$jobId: offered to queue"))
-          .compile
-          .drain
-          .start
+        (q.enqueue1(()) *> putStrLn[IO](show"$jobId: offered to queue")).start
 
       _ <- (1 to sizeLimit).toList.traverse(job).map(_.combineAll)
       _ <- q.size.discrete.evalMap(size => putStrLn[IO](show"queue size: $size")).compile.drain.start
