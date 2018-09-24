@@ -16,7 +16,7 @@ object Playground extends IOApp {
   val hangingQueue: IO[Unit] = {
     val sizeLimit = 5
     for {
-      q <- InspectableQueue.unbounded[IO, Unit](sizeLimit)
+      q <- InspectableQueue.bounded[IO, Unit](sizeLimit)
 
       job = (jobId: Int) => q.enqueue1(()) *> putStrLn[IO](show"$jobId: offered to queue")
 
